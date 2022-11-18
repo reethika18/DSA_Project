@@ -41,12 +41,36 @@ class Ground:
             col = 0
             row += 1
 
+        print(main_matrix)
+
         return main_matrix, three_pointer
 
+# def output(matrix):
+#     for i in matrix:
+#         print(i)
+#     print("\n")
+#
+# def initialise_basketball_court(court):
+#     row = col = 0
+#     rows = 7
+#     cols = 13
+#     for i in range(rows):
+#         court.append([])
+#         for j in range(cols):
+#             court[i]. append('  ')
+#     output(court)
+    # while row < rows:
+    #     while col < cols:
+    #
+    #
+    #         col += 1
+    #     row += 1
+    #     col = 0
 
 class Player:
-    def __init__(self, team, position, defence, attack):
-        self.team = team
+    def __init__(self, team_name, player_name, position, defence, attack):
+        self.team_name = team_name
+        self.player_name = player_name
         self.position = position
         self.defence = defence
         self.attack = attack
@@ -55,15 +79,16 @@ class Player:
 
 
 if __name__ == '__main__':
-    ground1 = Ground(19, 7)
+    basketball_court = []
+    # initial_basketball_court = initialise_basketball_court(basketball_court)
+    GS1 = Player('Golden State Warriors', 'GS1', [3, 5], 80, 95)
+    GS2 = Player('Golden State Warriors', 'GS2', [2, 4], 85, 85)
+    GS3 = Player('Golden State Warriors', 'GS3', [4, 4], 85, 85)
+    GS4 = Player('Golden State Warriors', 'GS4', [1, 3], 90, 80)
+    GS5 = Player('Golden State Warriors', 'GS5', [5, 3], 90, 80)
+    BC1 = Player('Boston Celtics', 'BC1', [3, 7], 80, 95)
+    BC2 = Player('Boston Celtics', 'BC2', [2, 8], 85, 85)
+    BC3 = Player('Boston Celtics', 'BC3', [4, 8], 85, 85)
+    BC4 = Player('Boston Celtics', 'BC4', [1, 9], 90, 80)
+    BC5 = Player('Boston Celtics', 'BC5', [5, 9], 90, 80)
     cells, three_ptr = ground1.create_initial_matrix()
-    GS1 = Player('Golden State Warriors', (3, 4), 80, 95)
-    GS2 = Player('Golden State Warriors', (3, 4), 80, 85)
-    GS3 = Player('Golden State Warriors', (3, 4), 85, 85)
-    GS4 = Player('Golden State Warriors', (3, 4), 85, 80)
-    GS5 = Player('Golden State Warriors', (3, 4), 95, 80)
-    BC1 = Player('Boston Celtics', (3, 4), 80, 95)
-    BC2 = Player('Boston Celtics', (3, 4), 80, 85)
-    BC3 = Player('Boston Celtics', (3, 4), 85, 85)
-    BC4 = Player('Boston Celtics', (3, 4), 85, 80)
-    BC5 = Player('Boston Celtics', (3, 4), 95, 80)
