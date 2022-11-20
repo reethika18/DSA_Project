@@ -67,7 +67,7 @@ class Ground:
     #     row += 1
     #     col = 0
 
-class Player:
+class Player(Ground):
     def __init__(self, team_name, player_name, position, defence, attack):
         self.team_name = team_name
         self.player_name = player_name
@@ -91,4 +91,28 @@ if __name__ == '__main__':
     BC3 = Player('Boston Celtics', 'BC3', [4, 8], 85, 85)
     BC4 = Player('Boston Celtics', 'BC4', [1, 9], 90, 80)
     BC5 = Player('Boston Celtics', 'BC5', [5, 9], 90, 80)
+    ground1 = Ground(13, 7)
     cells, three_ptr = ground1.create_initial_matrix()
+
+    while True:
+        # two cases - attack and defense...depends who the ball is the with
+        print('This move is for the Golden State Warriors team. Choose one of the following:\n')
+        print('  1. Move player with the ball in any direction')
+        print('  2. Pass the ball to your teammate')
+        print('  3. Shoot towards the basket')
+        print('  Q. Quit game')
+        i = input('Enter your choice: ').lower().strip()
+        if i == '1':
+            pass
+            # print_final_boards('grandmasters-standard-2018-2022.pgn')
+        elif i == '2':
+            # frequency_of_first_moves('grandmasters-standard-2018-2022.pgn')
+            pass
+        elif i == '3':
+            # with open('grandmasters-standard-2018-2022.pgn') as pgn:
+                # g = chess.pgn.read_game(pgn)  # get first game in file
+                # print_game_details(g)
+            pass
+        elif i == 'q':
+            break
+        print('\n\n')
