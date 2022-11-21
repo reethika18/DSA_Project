@@ -1,6 +1,9 @@
 import random
+import sys
 
 class Ground:
+    cur_ball_pos = [-1,-1]
+    main_matrix_dict = {}
     def __init__(self, length, breadth, positions1, positions2):
         self.length = length
         self.breadth = breadth
@@ -18,47 +21,53 @@ class Ground:
         start_sq = [b_mid, l_mid]
         return goal_post_left, goal_post_right, start_sq
 
+    def current_ball_position(self, ball_position):
+        Ground.cur_ball_pos = ball_position
+
     def reset_matrix(self, start, after_basket, after_basket_team):
         three_pointer = []
-        main_matrix = {}
         row = 0
         col = 0
-        start_ball_pos = (-1,-1)
+        start_ball_pos = (-1, -1)
 
         if start:
             temp = [(positions1[0], 'GS1'), (positions2[0], 'BC1')]
             start_ball_pos = random.choice(temp)
+            Ground.current_ball_position(self, start_ball_pos[0])
+
 
         goal_post_left, goal_post_right, start_sq = self.assign_squares()
 
         while row < self.breadth:
             while col < self.length:
                 if [row, col] == goal_post_left or [row, col] == goal_post_right:
-                    main_matrix[row, col] = 'O'
+                    Ground.main_matrix_dict[row, col] = 'O'
                 elif [row, col] == start_sq:
-                    main_matrix[row, col] = 'S'
-                elif [row,col] == start_ball_pos[0]:
-                    main_matrix[row, col] = start_ball_pos[1] + '*'
+                    Ground.main_matrix_dict[row, col] = 'S'
+                elif [row, col] == start_ball_pos[0]:
+                    Ground.main_matrix_dict[row, col] = start_ball_pos[1] + '*'
                 elif [row, col] in positions1:
-                    main_matrix[row, col] = 'GS' + str(positions1.index([row, col]) + 1)
+                    Ground.main_matrix_dict[row, col] = 'GS' + str(positions1.index([row, col]) + 1)
                 elif [row, col] in positions2:
-                    main_matrix[row, col] = 'BC' + str(positions2.index([row, col]) + 1)
+                    Ground.main_matrix_dict[row, col] = 'BC' + str(positions2.index([row, col]) + 1)
                 elif ((row == 1 and col <= 3) or (1 <= row <= self.breadth - 2 and col == 3)) or (
                         (row == 1 and col >= self.length - 2) or (
                         1 <= row <= self.breadth - 2 and col == self.length - 2)) or (
                         row == self.breadth - 2 and col <= 3) or (row == self.breadth - 2 and col >= self.length - 2):
-                    main_matrix[row, col] = '.'
+                    Ground.main_matrix_dict[row, col] = '.'
                     three_pointer.append([row, col])
                 else:
-                    main_matrix[row, col] = '.'
+                    Ground.main_matrix_dict[row, col] = '.'
                 col += 1
 
             col = 0
             row += 1
 
-        self.place_player_on_grid(main_matrix)
-        # return main_matrix, three_pointer
+        self.place_player_on_grid(Ground.main_matrix_dict)
+        # return main_matrix_dict, three_pointer
         return
+
+
 
     def place_player_on_grid(self, matrix):
         # matrix, three = Ground.create_initial_matrix(self)
@@ -72,7 +81,6 @@ class Ground:
                     print('  ' + matrix[i, j] + '  ', end='')
 
         return
-
 
 
 # Player is a child of ground
@@ -91,6 +99,48 @@ class Player(Ground):
         self.position = position
         self.defence = defence
         self.attack = attack
+
+    def move_player(self, direction):
+        temp = Ground.main_matrix_dict[(self.position[0], self.position[1])]
+        Ground.main_matrix_dict[(self.position[0], self.position[1])] = '.'
+
+        if direction == 'n':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row-1, col]
+        elif direction == 's':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row+1, col]
+        elif direction == 'e':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row, col+1]
+        elif direction == 'w':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row, col-1]
+        elif direction == 'ne':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row-1, col+1]
+        elif direction == 'se':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row+1, col+1]
+        elif direction == 'nw':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row-1, col-1]
+        elif direction == 'sw':
+            row = Ground.cur_ball_pos[0]
+            col = Ground.cur_ball_pos[1]
+            self.position = [row+1, col-1]
+
+        Ground.current_ball_position(self, [self.position[0], self.position[1]])
+        Ground.main_matrix_dict[(self.position[0], self.position[1])] = temp
+
+
 
     def passing(self, pass_to):
         # pass_to is a list of 2 positions where first position is where player with ball at present is willing to
@@ -116,6 +166,7 @@ if __name__ == '__main__':
     BC5 = Player(13, 7, positions1, positions2, 'Boston Celtics', 'BC5', [5, 9], 90, 80)
     # cells, three_ptr = ground1.create_initial_matrix()
 
+    players = {'GS1': GS1, 'GS2': GS2, 'GS3': GS3, 'GS4': GS4, 'GS5': GS5, 'BC1':BC1, 'BC2': BC2, 'BC3': BC3, 'BC4':BC4, 'BC5': BC5}
     print('\n\n')
 
     while True:
@@ -131,12 +182,24 @@ if __name__ == '__main__':
             print('In which direction do you want to move?')
             print('Example: N, S, NE, SW')
             direction = input('Enter your choice: ').lower().strip()
+            print(Ground.cur_ball_pos)
+            temp_player = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
+            temp_player_name = temp_player[:3]
+            obj = players[temp_player_name]
+            obj.move_player(direction)
+            print(obj.position)
+
             print('\n')
             print('How many steps do you want to take in that direction?')
             print('  1. 1 Step')
             print('  2. 2 Steps')
             steps = input('Enter your choice: ').lower().strip()
-            # print_final_boards('grandmasters-standard-2018-2022.pgn')
+            if steps == '2':
+                print('Hiii')
+                obj.move_player(direction)
+
+            ground1.place_player_on_grid(Ground.main_matrix_dict)
+
         elif i == '2':
             # frequency_of_first_moves('grandmasters-standard-2018-2022.pgn')
             pass
