@@ -149,7 +149,7 @@ class Player(Ground):
         probability = 0
         close_players = self.calculate_opp_dist(curr_player_pos, opp_player_list)
         three_ptr_region_flag = self.three_ptr_region_valid(self, curr_player_pos, three_ptr)
-        if three_ptr_region_flag == True:
+        if three_ptr_region_flag == False:
             if len(close_players) > 0:
                 if curr_player.attack > 80:
                     for i in close_players:
@@ -163,10 +163,15 @@ class Player(Ground):
                 else:
                     probability = 0.65
         else:
-            probability = 1
+            if curr_player.attack > 80:
+                probability = 1
+            else:
+                probability = 0.75
 
-        return probability
+        return probability, three_ptr_region_flag
 
+    def update_score(self, probability, three_ptr_region_flag, scoreboard):
+        probability
     # def update_score(self, curr_player, probability, score_board):
     #     if probability == 0.5:
     #         basket = random.choices(population=(0, 1), weights=(0.5, 0.5))
@@ -177,6 +182,7 @@ if __name__ == '__main__':
     positions2 = [[3, 7], [2, 8], [4, 8], [1, 9], [5, 9]]
     ground1 = Ground(13, 7, positions1, positions2)
     ground1.reset_matrix(True, False, '')
+    scoreboard = {'GS' : 0, 'BC': 0}
 
     GS1 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS1', [3, 5], 80, 95)
     GS2 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS2', [2, 4], 85, 85)
