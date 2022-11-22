@@ -180,8 +180,6 @@ if __name__ == '__main__':
         teams_list.remove(attack)
         defense = teams_list[0]
 
-
-        # if team_with_ball == 'GS':
         print('This move is for the '+attack+' team. Choose one of the following:\n')
         print('  1. Move player with the ball in any direction')
         print('  2. Pass the ball to your teammate')
@@ -209,8 +207,43 @@ if __name__ == '__main__':
             ground1.place_player_on_grid(Ground.main_matrix_dict)
 
         elif i == '2':
-            # frequency_of_first_moves('grandmasters-standard-2018-2022.pgn')
-            pass
+            GS_team = ['GS1', 'GS2', 'GS3', 'GS4', 'GS5']
+            BC_team = ['BC1', 'BC2', 'BC3', 'BC4', 'BC5']
+            temp_player = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
+            temp_player_team = temp_player[:2]
+            temp_player_name = temp_player[:3]
+            if temp_player_team == 'GS':
+                GS_team.remove(temp_player_name)
+                print('Choose which teammate you want to pass:')
+                for i in GS_team:
+                    print(i)
+                teammate = input('Enter your choice: ').upper().strip()
+                Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])] = temp_player_name
+                for k, v in Ground.main_matrix_dict.items():
+                    if v == teammate:
+                        new = v+'*'
+                        Ground.main_matrix_dict[k] = new
+                        Ground.cur_ball_pos = k
+                ground1.place_player_on_grid(Ground.main_matrix_dict)
+            else:
+                BC_team.remove(temp_player_name)
+                print('Choose which teammate you want to pass:')
+                for i in BC_team:
+                    print('  '+i)
+                teammate = input('Enter your choice: ').upper().strip()
+                Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])] = temp_player_name
+                for k, v in Ground.main_matrix_dict.items():
+                    if v == teammate:
+                        new = v + '*'
+                        Ground.main_matrix_dict[k] = new
+                        Ground.cur_ball_pos = k
+                ground1.place_player_on_grid(Ground.main_matrix_dict)
+
+
+
+
+
+
         elif i == '3':
             # with open('grandmasters-standard-2018-2022.pgn') as pgn:
             # g = chess.pgn.read_game(pgn)  # get first game in file
