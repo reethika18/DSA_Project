@@ -1,5 +1,6 @@
 import random
 import sys
+import math
 
 
 class Ground:
@@ -66,7 +67,7 @@ class Ground:
 
         self.display_ground(Ground.main_matrix_dict)
         # return main_matrix_dict, three_pointer
-        return
+        return three_pointer
 
     def handing_ball_to_player(self, player_name_obj, player_name):
         pos = player_name_obj.position
@@ -230,6 +231,105 @@ class Player(Ground):
 
         return to_go
 
+    def calculate_opp_dist(self, players, curr_player_pos, opp_player_list):
+        """
+        Identifies all opponent players and their corresponding distances from the current player.
+        If the distance is not more than 2 cells, then the opponent is said to be in close range.
+        :param curr_player_pos: index of the current player possessing the ball
+        :param opp_player_list: list of all opponents
+        """
+        # curr_player_row = curr_player_pos[0]
+        # curr_player_col = curr_player_pos[1]
+        result_list = []
+        for i in opp_player_list:
+            obj = players[i]
+            opp_position = obj.position
+            defence = obj.defence
+            dist = math.dist(curr_player_pos, opp_position)
+            if dist <= 2:
+                result_list.append([obj, defence])
+
+        return result_list
+
+    def extract_three_ptr(self, three_ptr, length):
+        three_pointer_GS = []
+        three_pointer_BC = []
+
+        for i in three_ptr:
+            if i[1] > length / 2:
+                three_pointer_BC.append(i)
+            else:
+                three_pointer_GS.append(i)
+
+        return three_pointer_GS, three_pointer_BC
+
+    def three_ptr_region_valid(self, curr_player_pos, three_ptr):
+
+        curr_player_row = curr_player_pos[0]
+        curr_player_col = curr_player_pos[1]
+        row_list = []
+        col_list = []
+        for i in three_ptr:
+            row_list.append(i[0])
+            col_list.append(i[1])
+        min_row = min(row_list)
+        max_row = max(row_list)
+        min_col = min(col_list)
+        max_col = max(col_list)
+        if curr_player_row >= min_row and curr_player_row <= max_row and curr_player_col >= min_col and curr_player_col <= max_col:
+            return True
+        else:
+            return False
+
+    def calculate_probability(self, curr_player, three_ptr_region_flag):
+
+        # probability = 0
+
+        if three_ptr_region_flag == False:
+            if curr_player.attack > 80:
+                probability = 0.5
+            else:
+                probability = 0.40
+        else:
+            if curr_player.attack > 80:
+                probability = 1
+            else:
+                probability = 0.75
+
+        return probability
+
+    def update_score(self, probability, scoreboard, key):
+
+        print(f"Team: {key}")
+        if probability == 0.5:
+            shoot_success = random.choices(population=(0, 1), weights=(0.5, 0.5))[0]
+            print(f"shoot success: {shoot_success}")
+            if shoot_success == 1:
+                if key in scoreboard:
+                    scoreboard[key] += 3
+                    return scoreboard
+        elif probability == 0.4:
+            shoot_success = random.choices(population=(0, 1), weights=(0.6, 0.4))[0]
+            print(f"shoot success: {shoot_success}")
+            if shoot_success == 1:
+                if key in scoreboard:
+                    scoreboard[key] += 3
+                    return scoreboard
+        elif probability == 1:
+            shoot_success = random.choices(population=(0, 1), weights=(0, 1.0))[0]
+            print(f"shoot success: {shoot_success}")
+            if shoot_success == 1:
+                if key in scoreboard:
+                    scoreboard[key] += 2
+                    return scoreboard
+        elif probability == 0.75:
+            shoot_success = random.choices(population=(0, 1), weights=(0.25, 0.75))[0]
+            print(f"shoot success: {shoot_success}")
+            if shoot_success == 1:
+                if key in scoreboard:
+                    scoreboard[key] += 2
+                    return scoreboard
+
 
 if __name__ == '__main__':
     print('  -------------------Welcome to NBA FINALS 2022!!-------------------')
@@ -237,7 +337,7 @@ if __name__ == '__main__':
     positions1 = [[3, 5], [2, 4], [4, 4], [1, 3], [5, 3]]
     positions2 = [[3, 7], [2, 8], [4, 8], [1, 9], [5, 9]]
     ground1 = Ground(13, 7, positions1, positions2)
-    ground1.reset_matrix(True, False, '')
+    three_ptr = ground1.reset_matrix(True, False, '')
     GS1 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS1', [3, 5], 80, 95)
     GS2 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS2', [2, 4], 85, 85)
     GS3 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS3', [4, 4], 85, 85)
@@ -259,8 +359,11 @@ if __name__ == '__main__':
     attack = ''
     defense = ''
 
-    while True:
+    scoreboard = {'GS': 0, 'BC': 0}
+    gs_player_list = [players['GS1'], players['GS2'], players['GS3'], players['GS4'], players['GS5']]
+    bc_player_list = [players['BC1'], players['BC2'], players['BC3'], players['BC4'], players['BC5']]
 
+    while True:
         teams_list = ['GS', 'BC']
         ball_with_which_team = ground1.main_matrix_dict[(ground1.cur_ball_pos[0], ground1.cur_ball_pos[1])]
         team_with_ball = ball_with_which_team[:2]
@@ -297,7 +400,7 @@ if __name__ == '__main__':
                 if attacker_next_pos[0] < 0 or attacker_next_pos[0] > ground1.breadth or attacker_next_pos[1] < 0 or attacker_next_pos[1] > ground1.length:
                     continue
                 else:
-                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] != '.':
+                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] != '.':
                         if attack == 'GS':
                             print("That place is already occupied. Choose another place to move your player")
                             print('\n')
@@ -313,13 +416,22 @@ if __name__ == '__main__':
             attacker_next_pos = attacker.position
             # initial_attack_pos = attacker.position
 
-        # elif i == '3':
-        #     # with open('grandmasters-standard-2018-2022.pgn') as pgn:
-        #     # g = chess.pgn.read_game(pgn)  # get first game in file
-        #     # print_game_details(g)
-        #     pass
-        # elif i == 'q':
-        #     break
+        if i == '3':
+            length1 = int(ground1.length)
+            three_pointer_GS, three_pointer_BC = attacker.extract_three_ptr(three_ptr, length1)
+            if team_with_ball == 'GS':
+                # bc_close_players = obj.calculate_opp_dist(players, curr_player_pos, bc_player_list)
+                is_player_in_three_ptr = attacker.three_ptr_region_valid(attack_initial_pos, three_pointer_BC)
+                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr)
+                attacker.update_score(probability, scoreboard, team_with_ball)
+                print(f"ScoreBoard: {scoreboard}")
+
+            elif team_with_ball == 'BC':
+                # gs_close_players = obj.calculate_opp_dist(players, curr_player_pos, gs_player_list)
+                is_player_in_three_ptr = attacker.three_ptr_region_valid(attack_initial_pos, three_pointer_GS)
+                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr)
+                attacker.update_score(probability, scoreboard, team_with_ball)
+                print(f"ScoreBoard: {scoreboard}")
         print('\n\n')
 
         if defense == 'BC':
@@ -346,7 +458,7 @@ if __name__ == '__main__':
                 if defender_next_pos[0] < 0 or defender_next_pos[0] > ground1.breadth or defender_next_pos[1] < 0 or defender_next_pos[1] > ground1.length:
                     continue
                 else:
-                    if ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] != '.':
+                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] != '.':
                         if defense == 'GS':
                             print("That place is already occupied. Choose another place to move your player")
                             print('\n')
