@@ -1,9 +1,12 @@
 import random
 import sys
+import math
+
 
 class Ground:
-    cur_ball_pos = [-1,-1]
+    cur_ball_pos = [-1, -1]
     main_matrix_dict = {}
+
     def __init__(self, length, breadth, positions1, positions2):
         self.length = length
         self.breadth = breadth
@@ -35,7 +38,6 @@ class Ground:
             start_ball_pos = random.choice(temp)
             Ground.current_ball_position(self, start_ball_pos[0])
 
-
         goal_post_left, goal_post_right, start_sq = self.assign_squares()
 
         while row < self.breadth:
@@ -63,15 +65,16 @@ class Ground:
             col = 0
             row += 1
 
-        self.place_player_on_grid(Ground.main_matrix_dict)
+        self.display_ground(Ground.main_matrix_dict)
         # return main_matrix_dict, three_pointer
         return three_pointer
 
+    def handing_ball_to_player(self, player_name_obj, player_name):
+        pos = player_name_obj.position
+        Ground.main_matrix_dict[pos[0], pos[1]] = str(player_name) + '*'
 
-
-    def place_player_on_grid(self, matrix):
+    def display_ground(self, matrix):
         # matrix, three = Ground.create_initial_matrix(self)
-
         for i in range(self.breadth):
             print('\n')
             for j in range(self.length):
@@ -100,91 +103,133 @@ class Player(Ground):
         self.defence = defence
         self.attack = attack
 
-    def move_player(self, direction):
+    def navigator(self, direction, length, breadth):
+        row1 = self.position[0]
+        col1 = self.position[1]
+
+        if direction == 'n':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row - 1, col
+        elif direction == 's':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row + 1, col
+        elif direction == 'e':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row, col + 1
+        elif direction == 'w':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row, col - 1
+        elif direction == 'ne':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row - 1, col + 1
+        elif direction == 'se':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row + 1, col + 1
+        elif direction == 'nw':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row - 1, col - 1
+        elif direction == 'sw':
+            row = self.position[0]
+            col = self.position[1]
+            if row < 0 or row > breadth or col < 0 or col > length:
+                pass
+            else:
+                row1, col1 = row + 1, col - 1
+
+        # self.position = row1, col1
+        return row1, col1
+
+    def place_player_on_ground(self, row_to, col_to):
         temp = Ground.main_matrix_dict[(self.position[0], self.position[1])]
         Ground.main_matrix_dict[(self.position[0], self.position[1])] = '.'
+        new_row, new_col = row_to, col_to
+        Ground.main_matrix_dict[(new_row, new_col)] = temp
 
-        if direction == 'n':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row-1, col]
-        elif direction == 's':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row+1, col]
-        elif direction == 'e':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row, col+1]
-        elif direction == 'w':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row, col-1]
-        elif direction == 'ne':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row-1, col+1]
-        elif direction == 'se':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row+1, col+1]
-        elif direction == 'nw':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row-1, col-1]
-        elif direction == 'sw':
-            row = Ground.cur_ball_pos[0]
-            col = Ground.cur_ball_pos[1]
-            self.position = [row+1, col-1]
+    def move_player_on_ground_with_ball(self, team):
+        if team == 'BC':
+            direction = random.choice(['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'])
+            moves = random.choice(['1', '2'])
+        else:
+            print('In which direction do you want to move?')
+            print('Example: N, S, NE, SW')
+            direction = input('Enter your choice: ').lower().strip()
+            print('\n')
+            print('How many steps do you want to take in that direction?')
+            print('  1. 1 Step')
+            print('  2. 2 Steps')
+            moves = input('Enter your choice: ').lower().strip()
 
-        Ground.current_ball_position(self, [self.position[0], self.position[1]])
-        Ground.main_matrix_dict[(self.position[0], self.position[1])] = temp
+        row_no_attack, col_no_attack = self.navigator(direction, ground1.length, ground1.breadth)
 
-    def move_defending_player(self, direction):
-        Ground.main_matrix_dict[(self.position[0], self.position[1])] = '.'
+        self.position[0] = row_no_attack
+        self.position[1] = col_no_attack
 
-        if direction == 'n':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row-1, col]
-        elif direction == 's':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row+1, col]
-        elif direction == 'e':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row, col+1]
-        elif direction == 'w':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row, col-1]
-        elif direction == 'ne':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row-1, col+1]
-        elif direction == 'se':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row+1, col+1]
-        elif direction == 'nw':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row-1, col-1]
-        elif direction == 'sw':
-            row = self.position[0]
-            col = self.position[1]
-            self.position = [row+1, col-1]
+        if moves == '2':
+            row_no_attack, col_no_attack = self.navigator(direction, ground1.length, ground1.breadth)
+        to_move = [row_no_attack, col_no_attack]
+        return to_move
 
-        # Ground.current_ball_position(self, [self.position[0], self.position[1]])
-        Ground.main_matrix_dict[(self.position[0], self.position[1])] = self.player_name
+    def pass_ball_to_teammate(self):
+        GS_team = ['GS1', 'GS2', 'GS3', 'GS4', 'GS5']
+        BC_team = ['BC1', 'BC2', 'BC3', 'BC4', 'BC5']
+        team_name = self.player_name[:2]
+        if team_name == 'GS':
+            GS_team.remove(self.player_name)
+            print('Choose which teammate you want to pass:')
+            for i in GS_team:
+                print('  ' + i)
+            new_player = input('Enter your choice: ').upper().strip()
+        else:
+            BC_team.remove(player_with_ball.player_name)
+            new_player = random.choice(BC_team)
 
+        return new_player
 
+    def move_defense_to_itercept(self, team):
+        if team == 'BC':
+            defense_direction = random.choice(['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'])
+            steps = random.choice(['1', '2'])
+        else:
+            defense_direction = input(
+                'Enter your direction choice where you want to move the defender: ').lower().strip()
+            print('\n')
+            print('How many steps do you want to take in that direction?')
+            print('  1. 1 Step')
+            print('  2. 2 Steps')
+            steps = input('Enter your choice: ').lower().strip()
+        to_go = defender.navigator(defense_direction, ground1.length, ground1.breadth)
+        if steps == '2':
+            to_go = defender.navigator(defense_direction, ground1.length, ground1.breadth)
 
-    def passing(self, pass_to):
-        # pass_to is a list of 2 positions where first position is where player with ball at present is willing to
-        # pass and second is where the opposite player wants to move
-        pass
+        return to_go
 
     def calculate_opp_dist(self, players, curr_player_pos, opp_player_list):
         """
@@ -197,12 +242,11 @@ class Player(Ground):
         # curr_player_col = curr_player_pos[1]
         result_list = []
         for i in opp_player_list:
-            obj = players[i]
-            opp_position = obj.position
-            defence = obj.defence
+            opp_position = i.position
+            defence = i.defence
             dist = math.dist(curr_player_pos, opp_position)
             if dist <= 2:
-                result_list.append([obj, defence])
+                result_list.append([i, defence])
 
         return result_list
 
@@ -255,31 +299,31 @@ class Player(Ground):
 
     def update_score(self, probability, scoreboard, key):
 
-        print(key)
+        print(f"Team: {key}")
         if probability == 0.5:
             shoot_success = random.choices(population=(0, 1), weights=(0.5, 0.5))[0]
-            print(shoot_success)
+            print(f"shoot success: {shoot_success}")
             if shoot_success == 1:
                 if key in scoreboard:
                     scoreboard[key] += 3
                     return scoreboard
         elif probability == 0.4:
             shoot_success = random.choices(population=(0, 1), weights=(0.6, 0.4))[0]
-            print(shoot_success)
+            print(f"shoot success: {shoot_success}")
             if shoot_success == 1:
                 if key in scoreboard:
                     scoreboard[key] += 3
                     return scoreboard
         elif probability == 1:
             shoot_success = random.choices(population=(0, 1), weights=(0, 1.0))[0]
-            print(shoot_success)
+            print(f"shoot success: {shoot_success}")
             if shoot_success == 1:
                 if key in scoreboard:
                     scoreboard[key] += 2
                     return scoreboard
         elif probability == 0.75:
             shoot_success = random.choices(population=(0, 1), weights=(0.25, 0.75))[0]
-            print(shoot_success)
+            print(f"shoot success: {shoot_success}")
             if shoot_success == 1:
                 if key in scoreboard:
                     scoreboard[key] += 2
@@ -287,11 +331,12 @@ class Player(Ground):
 
 
 if __name__ == '__main__':
+    print('  -------------------Welcome to NBA FINALS 2022!!-------------------')
+    print('You are team Golden State Warriors and you will compete against Boston Celtics')
     positions1 = [[3, 5], [2, 4], [4, 4], [1, 3], [5, 3]]
     positions2 = [[3, 7], [2, 8], [4, 8], [1, 9], [5, 9]]
     ground1 = Ground(13, 7, positions1, positions2)
     three_ptr = ground1.reset_matrix(True, False, '')
-
     GS1 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS1', [3, 5], 80, 95)
     GS2 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS2', [2, 4], 85, 85)
     GS3 = Player(13, 7, positions1, positions2, 'Golden State Warriors', 'GS3', [4, 4], 85, 85)
@@ -304,12 +349,15 @@ if __name__ == '__main__':
     BC5 = Player(13, 7, positions1, positions2, 'Boston Celtics', 'BC5', [5, 9], 90, 80)
     # cells, three_ptr = ground1.create_initial_matrix()
 
-    players = {'GS1': GS1, 'GS2': GS2, 'GS3': GS3, 'GS4': GS4, 'GS5': GS5, 'BC1':BC1, 'BC2': BC2, 'BC3': BC3, 'BC4':BC4, 'BC5': BC5}
+    players = {'GS1': GS1, 'GS2': GS2, 'GS3': GS3, 'GS4': GS4, 'GS5': GS5, 'BC1': BC1, 'BC2': BC2, 'BC3': BC3,
+               'BC4': BC4, 'BC5': BC5}
     print('\n\n')
+    golden_state = [GS1, GS2, GS3, GS4, GS5]
+    boston_celtics = [BC1, BC2, BC3, BC4, BC5]
+
 
     attack = ''
     defense = ''
-    teams_list = ['GS', 'BC']
 
     scoreboard = {'GS': 0, 'BC': 0}
     gs_player_list = [players['GS1'], players['GS2'], players['GS3'], players['GS4'], players['GS5']]
@@ -317,146 +365,135 @@ if __name__ == '__main__':
 
     while True:
         teams_list = ['GS', 'BC']
-        ball_with_which_team = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
+        ball_with_which_team = ground1.main_matrix_dict[(ground1.cur_ball_pos[0], ground1.cur_ball_pos[1])]
         team_with_ball = ball_with_which_team[:2]
+        player_with_ball = ball_with_which_team[:3]
         attack = team_with_ball
         teams_list.remove(attack)
         defense = teams_list[0]
+        attacker = players[player_with_ball]
+        attack_initial_pos = [attacker.position[0], attacker.position[1]]
+        player_with_ball = attacker
+        attack_flag1 = True
+        defense_flag1 = True
+        attacker_next_pos = attacker.position
+        flag = 0
+        print(f"attack initial position 1111: {attack_initial_pos}")
 
-        print('This move is for the '+attack+' team. Choose one of the following:\n')
-        print('  1. Move player with the ball in any direction')
-        print('  2. Pass the ball to your teammate')
-        print('  3. Shoot towards the basket')
-        print('  Q. Quit game')
-        i = input('Enter your choice: ').lower().strip()
+
+        if attack == 'BC':
+            print("AI's turn")
+            i = random.choice(['2', '1'])
+            print(f"AI chose: {i}")
+        else:
+            print('This move is for the ' + attack + ' team. Choose one of the following:\n')
+            print('  1. Move player with the ball in any direction')
+            print('  2. Pass the ball to your teammate')
+            print('  3. Shoot towards the basket')
+            print('  Q. Quit game')
+            i = input('Enter your choice: ').lower().strip()
         print('\n')
         if i == '1':
-            print('In which direction do you want to move?')
-            print('Example: N, S, NE, SW')
-            direction = input('Enter your choice: ').lower().strip()
-            temp_player = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
-            temp_player_name = temp_player[:3]
-            obj = players[temp_player_name]
-            obj.move_player(direction)
+            flag = 1
+            while attack_flag1:
+                attacker_next_pos = attacker.move_player_on_ground_with_ball(attack)
+                if attacker_next_pos[0] < 0 or attacker_next_pos[0] > ground1.breadth or attacker_next_pos[1] < 0 or attacker_next_pos[1] > ground1.length:
+                    continue
+                else:
+                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] != '.':
+                        if attack == 'GS':
+                            print("That place is already occupied. Choose another place to move your player")
+                            print('\n')
+                        continue
+                    else:
+                        attack_flag1 = False
 
-            print('\n')
-            print('How many steps do you want to take in that direction?')
-            print('  1. 1 Step')
-            print('  2. 2 Steps')
-            steps = input('Enter your choice: ').lower().strip()
-            if steps == '2':
-                obj.move_player(direction)
+        if i == '2':
+            teammate = attacker.pass_ball_to_teammate()
+            teammate_obj = players[teammate]
+            ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]] = attacker.player_name
+            attacker = teammate_obj
+            attacker_next_pos = attacker.position
+            # initial_attack_pos = attacker.position
 
-            ground1.place_player_on_grid(Ground.main_matrix_dict)
-
-        elif i == '2':
-            GS_team = ['GS1', 'GS2', 'GS3', 'GS4', 'GS5']
-            BC_team = ['BC1', 'BC2', 'BC3', 'BC4', 'BC5']
-            temp_player = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
-            temp_player_team = temp_player[:2]
-            temp_player_name = temp_player[:3]
-            if temp_player_team == 'GS':
-                GS_team.remove(temp_player_name)
-                print('Choose which teammate you want to pass:')
-                for i in GS_team:
-                    print('  ' + i)
-                teammate = input('Enter your choice: ').upper().strip()
-                Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])] = temp_player_name
-                for k, v in Ground.main_matrix_dict.items():
-                    if v == teammate:
-                        new = v+'*'
-                        Ground.main_matrix_dict[k] = new
-                        Ground.cur_ball_pos = k
-                ground1.place_player_on_grid(Ground.main_matrix_dict)
-            else:
-                BC_team.remove(temp_player_name)
-                print('Choose which teammate you want to pass:')
-                for i in BC_team:
-                    print('  '+i)
-                teammate = input('Enter your choice: ').upper().strip()
-                Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])] = temp_player_name
-                for k, v in Ground.main_matrix_dict.items():
-                    if v == teammate:
-                        new = v + '*'
-                        Ground.main_matrix_dict[k] = new
-                        Ground.cur_ball_pos = k
-                ground1.place_player_on_grid(Ground.main_matrix_dict)
-
-        elif i == '3':
-            temp_player = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
-            temp_player_team = temp_player[:2]
-            temp_player_name = temp_player[:3]
-            obj = players[temp_player_name]
-            curr_player_pos = obj.position
+        if i == '3':
             length1 = int(ground1.length)
-            three_pointer_GS, three_pointer_BC = obj.extract_three_ptr(three_ptr, length1)
-            print(type(temp_player_team))
-            if temp_player_team == 'GS':
-                # bc_close_players = obj.calculate_opp_dist(players, curr_player_pos, bc_player_list)
-                is_player_in_three_ptr = obj.three_ptr_region_valid(curr_player_pos, three_pointer_BC)
-                probability = obj.calculate_probability(obj, is_player_in_three_ptr)
-                obj.update_score(probability, scoreboard, temp_player_team)
-                print(temp_player_team, curr_player_pos, is_player_in_three_ptr, probability, scoreboard)
+            three_pointer_GS, three_pointer_BC = attacker.extract_three_ptr(three_ptr, length1)
+            if team_with_ball == 'GS':
+                bc_close_players = attacker.calculate_opp_dist(players, attack_initial_pos, bc_player_list)
+                is_player_in_three_ptr = attacker.three_ptr_region_valid(attack_initial_pos, three_pointer_BC)
+                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr)
+                attacker.update_score(probability, scoreboard, team_with_ball)
+                print("close players are:", bc_close_players)
+                print(f"ScoreBoard: {scoreboard}")
 
-            elif temp_player_team == 'BC':
-                # gs_close_players = obj.calculate_opp_dist(players, curr_player_pos, gs_player_list)
-                is_player_in_three_ptr = obj.three_ptr_region_valid(curr_player_pos, three_pointer_GS)
-                probability = obj.calculate_probability(obj, is_player_in_three_ptr)
-                obj.update_score(probability, scoreboard, temp_player_team)
-                print(temp_player_team, curr_player_pos, is_player_in_three_ptr, probability, scoreboard)
-        elif i == 'q':
-            break
+            elif team_with_ball == 'BC':
+                gs_close_players = attacker.calculate_opp_dist(players, curr_player_pos, gs_player_list)
+                is_player_in_three_ptr = attacker.three_ptr_region_valid(attack_initial_pos, three_pointer_GS)
+                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr)
+                attacker.update_score(probability, scoreboard, team_with_ball)
+                print("close players are:", gs_close_players)
+                print(f"ScoreBoard: {scoreboard}")
         print('\n\n')
 
-        print('This move is for the '+defense+' team. Choose one of the following defensive move:\n')
-        print('  1. Choose your player to move and defend/intercept.')
-        print('  Q. Quit game')
-        i = input('Enter your choice: ').lower().strip()
+        if defense == 'BC':
+            print("AI's turn")
+            j = random.choice(['1'])
+        else:
+            print('This move is for the ' + defense + ' team. Choose one of the following defensive move:\n')
+            print('  1. Choose your player to move and intercept')
+            print('  Q. Quit game')
+            j = input('Enter your choice: ').lower().strip()
+
         print('\n')
-        if i == '1':
-            temp_player = Ground.main_matrix_dict[(Ground.cur_ball_pos[0], Ground.cur_ball_pos[1])]
-            temp_player_team = temp_player[:2]
-            print('Choose a player from the following list:')
-            GS_team = ['GS1', 'GS2', 'GS3', 'GS4', 'GS5']
-            BC_team = ['BC1', 'BC2', 'BC3', 'BC4', 'BC5']
-            if temp_player_team == 'GS':
-                for i in BC_team:
-                    print('  ' + i)
-                teammate = input('Enter your choice: ').upper().strip()
-                print('In which direction do you want to move?')
-                print('Example: N, S, NE, SW')
-                direction = input('Enter your choice: ').lower().strip()
-                obj = players[teammate]
-                obj.move_defending_player(direction)
-
-                print('\n')
-                print('How many steps do you want to take in that direction?')
-                print('  1. 1 Step')
-                print('  2. 2 Steps')
-                steps = input('Enter your choice: ').lower().strip()
-                if steps == '2':
-                    obj.move_defending_player(direction)
-
-                ground1.place_player_on_grid(Ground.main_matrix_dict)
+        if j == '1':
+            if defense == 'BC':
+                defense_player = random.choice(['BC1', 'BC2', 'BC3', 'BC4', 'BC5'])
             else:
-                for i in GS_team:
-                    print('  ' + i)
-                teammate = input('Enter your choice: ').upper().strip()
-                print('In which direction do you want to move?')
-                print('Example: N, S, NE, SW')
-                direction = input('Enter your choice: ').lower().strip()
-                obj = players[teammate]
-                obj.move_defending_player(direction)
+                defense_player = input('Enter your choice: ').upper().strip()
 
-                print('\n')
-                print('How many steps do you want to take in that direction?')
-                print('  1. 1 Step')
-                print('  2. 2 Steps')
-                steps = input('Enter your choice: ').lower().strip()
-                if steps == '2':
-                    obj.move_defending_player(direction)
+            defender = players[defense_player]
+            defense_initial_position = defender.position
+            defender_next_pos = defender.position
+            while defense_flag1:
+                defender_next_pos = defender.move_defense_to_itercept(defense)
+                if defender_next_pos[0] < 0 or defender_next_pos[0] > ground1.breadth or defender_next_pos[1] < 0 or defender_next_pos[1] > ground1.length:
+                    continue
+                else:
+                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] != '.':
+                        if defense == 'GS':
+                            print("That place is already occupied. Choose another place to move your player")
+                            print('\n')
+                        continue
+                    else:
+                        defense_flag1 = False
 
-                ground1.place_player_on_grid(Ground.main_matrix_dict)
-        elif i == 'q':
-            break
+            if attacker_next_pos == defender_next_pos:
+                player_with_ball = defender
+                ground1.cur_ball_pos = defender.position
+                # -------- need to add cases when the position goes out of bound of the ground---------
+                ground1.main_matrix_dict[defense_initial_position[0], defense_initial_position[1]] = '.'
+                attacker_player_name = attacker.player_name
+                ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]] = attacker.player_name
+                defender.position = defender_next_pos
+                attacker.position = attack_initial_pos
+                # -------------------------------------------------------------------------------------
+
+            else:
+                player_with_ball = attacker
+                ground1.main_matrix_dict[defense_initial_position[0], defense_initial_position[1]] = '.'
+                ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] = defender.player_name
+                if flag == 1:
+                    print(f"{attack_initial_pos[0], attack_initial_pos[1]}")
+                    ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]] = '.'
+
+                print(f"attack initial position: {attack_initial_pos}")
+                print(f"value: {ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]]}")
+                attacker.position = attacker_next_pos
+                defender.position = defender_next_pos
+
+        ground1.cur_ball_pos = player_with_ball.position
+        ground1.handing_ball_to_player(player_with_ball, player_with_ball.player_name)
+        ground1.display_ground(ground1.main_matrix_dict)
+
         print('\n\n')
