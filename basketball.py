@@ -1,6 +1,7 @@
 import random
 import sys
 import math
+import tcod
 
 
 class Ground:
@@ -330,6 +331,47 @@ class Player(Ground):
                     scoreboard[key] += 2
                     return scoreboard
 
+    def line_of_sight(self, player1, player2, outsider):
+        line = tcod.los.bresenham(player1.position, player2.position).tolist()
+        print(f"line of sighttt: {line}")
+        print(f"outsider position: {outsider.position}")
+        if outsider.position in line:
+            return True
+        else:
+            return False
+
+    def move_remaining_players(self, remaining_player_dict, ball_pos):
+        new_positions = {}
+        for key, value in remaining_player_dict.items():
+            row1, col1 = 0, 0
+            if ball_pos[1] == value[1] and ball_pos[0] < value[0]:
+                row1, col1 = value[0] - 1, value[1]
+            if ball_pos[1] == value[1] and ball_pos[0] > value[0]:
+                row1, col1 = value[0] + 1, value[1]
+            if ball_pos[1] > value[1] and ball_pos[0] == value[0]:
+                row1, col1 = value[0], value[1] + 1
+            if ball_pos[1] < value[1] and ball_pos[0] == value[0]:
+                row1, col1 = value[0], value[1] - 1
+            if ball_pos[1] > value[1] and ball_pos[0] < value[0]:
+                row1, col1 = value[0] - 1, value[1] + 1
+            if ball_pos[1] < value[1] and ball_pos[0] < value[0]:
+                row1, col1 = value[0] - 1, value[1] - 1
+            if ball_pos[1] > value[1] and ball_pos[0] > value[0]:
+                row1, col1 = value[0] + 1, value[1] + 1
+            if ball_pos[1] < value[1] and ball_pos[0] > value[0]:
+                row1, col1 = value[0] + 1, value[1] - 1
+            new_positions[key] = [row1, col1]
+
+        return new_positions
+
+    def move_other_players(self, position_dict):
+        for key, value in position_dict.items():
+            prev_position = key.position
+            if Ground.main_matrix_dict[value[0], value[1]] == '.':
+                Ground.main_matrix_dict[prev_position[0], prev_position[1]] = '.'
+                Ground.main_matrix_dict[value[0], value[1]] = key.player_name
+                key.position = [value[0], value[1]]
+        return
 
 if __name__ == '__main__':
     print('  -------------------Welcome to NBA FINALS 2022!!-------------------')
@@ -353,8 +395,7 @@ if __name__ == '__main__':
     players = {'GS1': GS1, 'GS2': GS2, 'GS3': GS3, 'GS4': GS4, 'GS5': GS5, 'BC1': BC1, 'BC2': BC2, 'BC3': BC3,
                'BC4': BC4, 'BC5': BC5}
     print('\n\n')
-    golden_state = [GS1, GS2, GS3, GS4, GS5]
-    boston_celtics = [BC1, BC2, BC3, BC4, BC5]
+
 
     attack = ''
     defense = ''
@@ -364,6 +405,8 @@ if __name__ == '__main__':
     bc_player_list = [players['BC1'], players['BC2'], players['BC3'], players['BC4'], players['BC5']]
 
     while True:
+        golden_state = [GS1, GS2, GS3, GS4, GS5]
+        boston_celtics = [BC1, BC2, BC3, BC4, BC5]
         teams_list = ['GS', 'BC']
         ball_with_which_team = ground1.main_matrix_dict[(ground1.cur_ball_pos[0], ground1.cur_ball_pos[1])]
         team_with_ball = ball_with_which_team[:2]
@@ -378,8 +421,8 @@ if __name__ == '__main__':
         defense_flag1 = True
         attacker_next_pos = attacker.position
         flag = 0
+        chose_to_pass = False
         print(f"attack initial position 1111: {attack_initial_pos}")
-
 
         if attack == 'BC':
             print("AI's turn")
@@ -397,10 +440,12 @@ if __name__ == '__main__':
             flag = 1
             while attack_flag1:
                 attacker_next_pos = attacker.move_player_on_ground_with_ball(attack)
-                if attacker_next_pos[0] < 0 or attacker_next_pos[0] > ground1.breadth or attacker_next_pos[1] < 0 or attacker_next_pos[1] > ground1.length:
+                if attacker_next_pos[0] < 0 or attacker_next_pos[0] > ground1.breadth or attacker_next_pos[1] < 0 or \
+                        attacker_next_pos[1] > ground1.length:
                     continue
                 else:
-                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] != '.':
+                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and \
+                            ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] != '.':
                         if attack == 'GS':
                             print("That place is already occupied. Choose another place to move your player")
                             print('\n')
@@ -409,6 +454,8 @@ if __name__ == '__main__':
                         attack_flag1 = False
 
         if i == '2':
+            chose_to_pass = True
+            initial_attacker = attacker
             teammate = attacker.pass_ball_to_teammate()
             teammate_obj = players[teammate]
             ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]] = attacker.player_name
@@ -448,17 +495,19 @@ if __name__ == '__main__':
             if defense == 'BC':
                 defense_player = random.choice(['BC1', 'BC2', 'BC3', 'BC4', 'BC5'])
             else:
-                defense_player = input('Enter your choice: ').upper().strip()
+                defense_player = input('Enter the player who you want to move: ').upper().strip()
 
             defender = players[defense_player]
             defense_initial_position = defender.position
             defender_next_pos = defender.position
             while defense_flag1:
                 defender_next_pos = defender.move_defense_to_itercept(defense)
-                if defender_next_pos[0] < 0 or defender_next_pos[0] > ground1.breadth or defender_next_pos[1] < 0 or defender_next_pos[1] > ground1.length:
+                if defender_next_pos[0] < 0 or defender_next_pos[0] > ground1.breadth or defender_next_pos[1] < 0 or \
+                        defender_next_pos[1] > ground1.length:
                     continue
                 else:
-                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] != '.':
+                    if ground1.main_matrix_dict[attacker_next_pos[0], attacker_next_pos[1]] and \
+                            ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] != '.':
                         if defense == 'GS':
                             print("That place is already occupied. Choose another place to move your player")
                             print('\n')
@@ -476,8 +525,31 @@ if __name__ == '__main__':
                 defender.position = defender_next_pos
                 attacker.position = attack_initial_pos
                 # -------------------------------------------------------------------------------------
+            if chose_to_pass:
+                is_defender_in_middle = attacker.line_of_sight(initial_attacker, teammate_obj, defender)
+                if is_defender_in_middle:
+                    player_with_ball = defender
+                    ground1.cur_ball_pos = defender.position
+                    # -------- need to add cases when the position goes out of bound of the ground---------
+                    ground1.main_matrix_dict[defense_initial_position[0], defense_initial_position[1]] = '.'
+                    attacker_player_name = attacker.player_name
+                    ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]] = attacker.player_name
+                    defender.position = defender_next_pos
+                    attacker.position = attack_initial_pos
+                else:
+                    player_with_ball = attacker
+                    ground1.main_matrix_dict[defense_initial_position[0], defense_initial_position[1]] = '.'
+                    ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] = defender.player_name
+                    if flag == 1:
+                        print(f"{attack_initial_pos[0], attack_initial_pos[1]}")
+                        ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]] = '.'
 
-            else:
+                    print(f"attack initial position: {attack_initial_pos}")
+                    print(f"value: {ground1.main_matrix_dict[attack_initial_pos[0], attack_initial_pos[1]]}")
+                    attacker.position = attacker_next_pos
+                    defender.position = defender_next_pos
+
+            if attacker_next_pos != defender_next_pos and not chose_to_pass:
                 player_with_ball = attacker
                 ground1.main_matrix_dict[defense_initial_position[0], defense_initial_position[1]] = '.'
                 ground1.main_matrix_dict[defender_next_pos[0], defender_next_pos[1]] = defender.player_name
@@ -490,8 +562,34 @@ if __name__ == '__main__':
                 attacker.position = attacker_next_pos
                 defender.position = defender_next_pos
 
+
+
         ground1.cur_ball_pos = player_with_ball.position
         ground1.handing_ball_to_player(player_with_ball, player_with_ball.player_name)
+
+        #moving the other 8 players on the field
+        if attacker in golden_state:
+            golden_state.remove(attacker)
+        if attacker in boston_celtics:
+            boston_celtics.remove(attacker)
+        if defender in golden_state:
+            golden_state.remove(defender)
+        if defender in boston_celtics:
+            boston_celtics.remove(defender)
+
+        list_of_remaining = golden_state + boston_celtics
+        remaining_player_positions = {}
+        #getting all of their positions
+        print("Getting players positions")
+        for rem_player in list_of_remaining:
+            remaining_player_positions[rem_player] = rem_player.position
+
+        new_positions = attacker.move_remaining_players(remaining_player_positions, ground1.cur_ball_pos)
+        print(f"These are the new positions: {new_positions}")
+
+        attacker.move_other_players(new_positions)
         ground1.display_ground(ground1.main_matrix_dict)
+
+
 
         print('\n\n')
