@@ -194,7 +194,7 @@ class Player(Ground):
             direction = input('Enter your choice: ').lower().strip()
             print('\n')
             print('How many steps do you want to take in that direction?')
-            print('  1. 1 Step')
+            print('  1. 1 Step ')
             print('  2. 2 Steps')
             moves = input('Enter your choice: ').lower().strip()
 
