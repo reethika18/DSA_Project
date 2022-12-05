@@ -231,26 +231,29 @@ class Player(Ground):
 
         return to_go
 
-    def calculate_opp_dist(self, players, curr_player_pos, opp_player_list):
+    def calculate_opp_dist(self, curr_player_pos, opp_player_list):
         """
         Identifies all opponent players and their corresponding distances from the current player.
         If the distance is not more than 2 cells, then the opponent is said to be in close range.
         :param curr_player_pos: index of the current player possessing the ball
         :param opp_player_list: list of all opponents
         """
-        # curr_player_row = curr_player_pos[0]
-        # curr_player_col = curr_player_pos[1]
+     
         result_list = []
         for i in opp_player_list:
             opp_position = i.position
-            defence = i.defence
             dist = math.dist(curr_player_pos, opp_position)
             if dist <= 2:
-                result_list.append([i, defence])
+                result_list.append(i)
 
         return result_list
 
     def extract_three_ptr(self, three_ptr, length):
+        """
+        Extracts and splits indices of three-pointer regions on both sides of the court into two lists
+        :param three_ptr: list containing index values of both three pointer regions
+        :param length: length of the court
+        """
         three_pointer_GS = []
         three_pointer_BC = []
 
@@ -263,6 +266,11 @@ class Player(Ground):
         return three_pointer_GS, three_pointer_BC
 
     def three_ptr_region_valid(self, curr_player_pos, three_ptr):
+        """
+        Checks whether current player is inside or outside the three-pointer region and returns boolean value.
+        :param curr_player_pos: index of the current player possessing the ball
+        :param three_ptr: three-pointer region index values of the opponent's side of the court
+        """
 
         curr_player_row = curr_player_pos[0]
         curr_player_col = curr_player_pos[1]
@@ -280,15 +288,26 @@ class Player(Ground):
         else:
             return False
 
-    def calculate_probability(self, curr_player, three_ptr_region_flag):
-
-        # probability = 0
+    def calculate_probability(self, curr_player, three_ptr_region_flag, close_player_list):
+        """
+        Calculates the probability of scoring a basket based on attacker's position, attack strength and presence of close standing opponents
+        :param curr_player_pos: index of the current player possessing the ball
+        :param three_ptr_region_flag: boolean value stating whether attacker is inside or outside three-pointer region
+        :param close_player_list: list containing opponents close to the attacker
+        """
+    
 
         if three_ptr_region_flag == False:
-            if curr_player.attack > 80:
-                probability = 0.5
+            if len(close_player_list) > 0:
+                if curr_player.attack > 80:
+                    probability = 0.75 * 0.5
+                else:
+                    probability = 0.40 * 0.5
             else:
-                probability = 0.40
+                if curr_player.attack > 80:
+                    probability = 0.75
+                else:
+                    probability = 0.40
         else:
             if curr_player.attack > 80:
                 probability = 1
@@ -297,32 +316,25 @@ class Player(Ground):
 
         return probability
 
-    def update_score(self, probability, scoreboard, key):
-
+    def update_score(self, probability, scoreboard, key, three_ptr_region_flag):
+        """
+        Updates and tracks the total score of both teams after every basket
+        :param probability: probability of scoring a basket by current attacker
+        :param scoreboard: dictionary maintaining current score of both teams
+        :param key: key value of scoreboard dictionary
+        :param three_ptr_region_flag: boolean value stating whether attacker is inside or outside three-pointer region
+        """
         print(f"Team: {key}")
-        if probability == 0.5:
-            shoot_success = random.choices(population=(0, 1), weights=(0.5, 0.5))[0]
+        p = probability
+        not_p = 1 - p
+        shoot_success = random.choices(population=(0, 1), weights=(not_p, p))[0]
+        if three_ptr_region_flag == False:
             print(f"shoot success: {shoot_success}")
             if shoot_success == 1:
                 if key in scoreboard:
                     scoreboard[key] += 3
                     return scoreboard
-        elif probability == 0.4:
-            shoot_success = random.choices(population=(0, 1), weights=(0.6, 0.4))[0]
-            print(f"shoot success: {shoot_success}")
-            if shoot_success == 1:
-                if key in scoreboard:
-                    scoreboard[key] += 3
-                    return scoreboard
-        elif probability == 1:
-            shoot_success = random.choices(population=(0, 1), weights=(0, 1.0))[0]
-            print(f"shoot success: {shoot_success}")
-            if shoot_success == 1:
-                if key in scoreboard:
-                    scoreboard[key] += 2
-                    return scoreboard
-        elif probability == 0.75:
-            shoot_success = random.choices(population=(0, 1), weights=(0.25, 0.75))[0]
+        else:
             print(f"shoot success: {shoot_success}")
             if shoot_success == 1:
                 if key in scoreboard:
@@ -420,18 +432,18 @@ if __name__ == '__main__':
             length1 = int(ground1.length)
             three_pointer_GS, three_pointer_BC = attacker.extract_three_ptr(three_ptr, length1)
             if team_with_ball == 'GS':
-                bc_close_players = attacker.calculate_opp_dist(players, attack_initial_pos, bc_player_list)
+                bc_close_players = attacker.calculate_opp_dist(attack_initial_pos, bc_player_list)
                 is_player_in_three_ptr = attacker.three_ptr_region_valid(attack_initial_pos, three_pointer_BC)
-                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr)
-                attacker.update_score(probability, scoreboard, team_with_ball)
+                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr, bc_close_players)
+                attacker.update_score(probability, scoreboard, team_with_ball, is_player_in_three_ptr)
                 print("close players are:", bc_close_players)
                 print(f"ScoreBoard: {scoreboard}")
 
             elif team_with_ball == 'BC':
-                gs_close_players = attacker.calculate_opp_dist(players, curr_player_pos, gs_player_list)
+                gs_close_players = attacker.calculate_opp_dist(curr_player_pos, gs_player_list)
                 is_player_in_three_ptr = attacker.three_ptr_region_valid(attack_initial_pos, three_pointer_GS)
-                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr)
-                attacker.update_score(probability, scoreboard, team_with_ball)
+                probability = attacker.calculate_probability(attacker, is_player_in_three_ptr, gs_close_players)
+                attacker.update_score(probability, scoreboard, team_with_ball, is_player_in_three_ptr)
                 print("close players are:", gs_close_players)
                 print(f"ScoreBoard: {scoreboard}")
         print('\n\n')
