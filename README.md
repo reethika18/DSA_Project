@@ -15,7 +15,7 @@ understanding of the game. We have created a basic simulation of the game, where
 It is a turn based game, so the user and the AI will select their moves one after the other, and the resulting gamestate
 would be displayed after both of them have made a move.
 
-![](../../Downloads/stephen-curry-ftr_1.jpeg)
+![stephen-curry-ftr_1](https://user-images.githubusercontent.com/21601496/206863343-4f9ed1a0-ee32-443d-a4eb-f3ed79547663.jpeg)
 
 ## Important moves
 
