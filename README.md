@@ -42,7 +42,7 @@ follow a default movement to make the game more realistic. By default, the rest 
 towards the ball
 
 
-- **Line of sight interception**  
+- **Pass interception**  
 If the user decides to pass the ball to its teammate, and simultaneously the opponent decides to move and come 
 between the path of the ball being passed, the ball gets intercepted by the opponent.
 
