@@ -66,7 +66,7 @@ its mistakes. The purpose of AI here is to make the game single-player rather th
 the pace of the game (as AI can choose its move instantly).
 
 
-##Time Complexity Analysis
+## Time Complexity Analysis
 For different functions in our program, the time complexity is slightly varying. 
 The function that displays the ground to the players takes O(n^2) time.
 The pass_ball_to_teammate, calculate_opp_dist, extract_three_ptr, three_ptr_region_valid, and move_remaining_players functions take O(n) time where 'n' in each case is different.
